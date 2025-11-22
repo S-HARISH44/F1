@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>F1 Telemetry Dashboard v5.0</title>
+    <title>F1 Telemetry Dashboard v5.1</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -95,6 +95,17 @@
         .ai-response strong { color: #ef4444; font-weight: 600; }
         .ai-response ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.5rem; }
         .ai-response li { margin-bottom: 0.25rem; }
+
+        /* Responsive Adjustments */
+        @media (max-width: 640px) {
+            .nav-scroll {
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 0.5rem;
+                -webkit-overflow-scrolling: touch;
+            }
+            .nav-scroll::-webkit-scrollbar { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -212,18 +223,23 @@
                         <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-950/30" ref={scrollRef}>{messages.map((m, i) => (<div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[80%] p-4 rounded-xl text-sm ${m.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-slate-800 text-slate-200 rounded-tl-none border border-slate-700'}`}>{m.role === 'ai' ? <div dangerouslySetInnerHTML={{ __html: marked.parse(m.text) }}></div> : m.text}</div></div>))}</div>
                         <div className="p-4 bg-slate-900/50 border-t border-slate-800 flex gap-3"><input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSend()} placeholder="Ask strategy..." className="flex-1 bg-[#0b0e14] border border-slate-700 rounded-lg px-4 py-3 text-white focus:border-blue-500 outline-none font-mono text-sm" /><button onClick={() => handleSend()} disabled={loading} className="px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition disabled:opacity-50"><Icons.Send className="w-5 h-5" /></button></div>
                     </div>
+                    {/* AI Recommendation Cards */}
                     <div className="hidden lg:flex flex-col gap-4">
                         <div className="card p-6 bg-gradient-to-br from-blue-900/20 to-slate-900/50 border-blue-900/30">
-                            <h4 className="text-sm font-bold text-blue-400 uppercase tracking-widest mb-4">Suggested Queries</h4>
+                            <h4 className="text-sm font-bold text-blue-400 uppercase tracking-widest mb-4">Quick Analysis</h4>
                             <div className="space-y-2">
-                                {["Analyze Verstappen's dominance", "Compare Ferrari vs Mercedes in 2023", "Who has the best pit crew?", "Impact of DNFs on 2021 title"].map((q, i) => (
-                                    <button key={i} onClick={() => handleSend(q)} className="w-full text-left p-3 rounded bg-slate-900/50 hover:bg-slate-800 text-xs text-slate-300 border border-slate-800 transition flex items-center gap-2 group">
-                                        <span className="group-hover:text-blue-400 transition-colors">{q}</span>
-                                    </button>
-                                ))}
+                                <button onClick={() => handleSend("Compare the dominance of Michael Schumacher and Lewis Hamilton statistically.")} className="w-full text-left p-3 rounded bg-slate-900/50 hover:bg-slate-800 text-xs text-slate-300 border border-slate-800 transition flex items-center gap-2 group">
+                                    <span className="group-hover:text-blue-400 transition-colors">Compare Eras</span>
+                                </button>
+                                <button onClick={() => handleSend("Which driver has the highest win percentage at Monaco?")} className="w-full text-left p-3 rounded bg-slate-900/50 hover:bg-slate-800 text-xs text-slate-300 border border-slate-800 transition flex items-center gap-2 group">
+                                    <span className="group-hover:text-blue-400 transition-colors">Circuit Mastery</span>
+                                </button>
+                                <button onClick={() => handleSend("Analyze the impact of reliability on the 2022 championship.")} className="w-full text-left p-3 rounded bg-slate-900/50 hover:bg-slate-800 text-xs text-slate-300 border border-slate-800 transition flex items-center gap-2 group">
+                                    <span className="group-hover:text-blue-400 transition-colors">Reliability Impact</span>
+                                </button>
                             </div>
                         </div>
-                        <div className="card p-6">
+                         <div className="card p-6">
                             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">System Status</h4>
                             <div className="flex items-center gap-2 text-xs text-green-400 font-mono"><span className="w-2 h-2 bg-green-500 rounded-full"></span> Gemini-2.5-Flash: Active</div>
                         </div>
@@ -247,6 +263,7 @@
                     await Promise.all(filesToFetch.map(f => new Promise((resolve, reject) => Papa.parse(BASE_URL + f, { download: true, header: true, skipEmptyLines: true, complete: res => { fetchedData[f] = res.data; addLog(`Latched: ${f} [${res.data.length} rows]`); resolve(); }, error: err => reject(err) }))));
                     addLog("Compiling analytics...");
                     
+                    // SAFE INITIALIZATION
                     const data = { drivers: {}, teams: {}, driverStats: {}, teamStats: {}, yearlyStats: {}, recentResults: [], seasons: {}, retirementCauses: {}, circuits: {}, pitStops: [] };
                     const scheduleMap = {}, seasonHelper = {};
 
